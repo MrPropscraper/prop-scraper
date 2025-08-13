@@ -319,7 +319,7 @@ async function loadBoardData(): Promise<APIPick[]> {
       const data = await res.json();
       // Expect either array or { picks: [...] }
       const arr = Array.isArray(data) ? data : Array.isArray(data?.picks) ? data.picks : null;
-      if (arr && arr.length >= 0) {
+      if (arr && arr.length > 0) {
         // Normalize a bit
         return arr.map((x: any) => ({
           id: x.id ?? `${x.player}-${x.platform}-${x.sport}`,
