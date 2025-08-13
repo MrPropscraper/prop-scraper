@@ -35,12 +35,17 @@ export async function GET(req: Request) {
       return NextResponse.json({ error: "Failed to fetch data" }, { status: 500 });
     }
 
-    const data = await resp.json();
+    const data: unknown = await resp.json();
+    const projections = Array.isArray((data as { data?: unknown[] }).data)
+      ? (data as { data: unknown[] }).data
+      : [];
+    type Projection = { attributes?: { name?: string; stat_type?: string; line_score?: number } };
     const searchName = normalizeString(playerName);
 
-    const projection = data.data.find((p: any) =>
-      normalizeString(p.attributes?.name || "").includes(searchName) &&
-      normalizeString(p.attributes?.stat_type || "") === "pitcher strikeouts"
+    const projection = (projections as Projection[]).find(
+      (p) =>
+        normalizeString(p.attributes?.name || "").includes(searchName) &&
+        normalizeString(p.attributes?.stat_type || "") === "pitcher strikeouts"
     );
 
     if (projection) {

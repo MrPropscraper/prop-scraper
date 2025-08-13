@@ -316,20 +316,24 @@ async function loadBoardData(): Promise<APIPick[]> {
     try {
       const res = await fetch(url, { cache: "no-store" });
       if (!res.ok) continue;
-      const data = await res.json();
+      const data: unknown = await res.json();
       // Expect either array or { picks: [...] }
-      const arr = Array.isArray(data) ? data : Array.isArray(data?.picks) ? data.picks : null;
-      if (arr && arr.length > 0) {
+      const arr: unknown = Array.isArray(data)
+        ? data
+        : typeof data === "object" && data !== null && Array.isArray((data as { picks?: unknown }).picks)
+        ? (data as { picks: unknown[] }).picks
+        : null;
+      if (Array.isArray(arr) && arr.length > 0) {
         // Normalize a bit
-        return arr.map((x: any) => ({
+        return (arr as Partial<APIPick>[]).map((x) => ({
           id: x.id ?? `${x.player}-${x.platform}-${x.sport}`,
-          sport: x.sport,
-          player: x.player,
+          sport: x.sport!,
+          player: x.player!,
           team: x.team,
-          platform: x.platform,
+          platform: x.platform!,
           statUnit: x.statUnit ?? "",
           line: Number(x.line),
-          pickSide: x.pickSide,
+          pickSide: x.pickSide!,
           overMultiplier: typeof x.overMultiplier === "number" ? x.overMultiplier : undefined,
           underMultiplier: typeof x.underMultiplier === "number" ? x.underMultiplier : undefined,
           confidence: typeof x.confidence === "number" ? x.confidence : undefined,
